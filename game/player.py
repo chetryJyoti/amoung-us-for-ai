@@ -30,6 +30,7 @@ class Player:
     alive: bool = True
     speed: float = PLAYER_SPEED
     radius: int = PLAYER_RADIUS
+    role: any = None  # Set by GameState (Role.CREWMATE or Role.IMPOSTOR)
 
     def move(self, direction: Direction, game_map) -> bool:
         """

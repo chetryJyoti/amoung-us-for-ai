@@ -82,13 +82,44 @@ A phase-by-phase record of what was built.
 ---
 
 ## Phase 3: Game State & Roles
-**Status:** Pending
+**Status:** Complete
 
-### Planned
-- GameState class managing game phases
-- Role assignment (crewmate/impostor)
-- Alive/dead status tracking
-- Win conditions
+### What We Built
+- `GameState` class managing game phases and role assignments
+- `Role` enum: CREWMATE, IMPOSTOR
+- `GamePhase` enum: LOBBY, PLAYING, DISCUSSION, VOTING, GAME_OVER
+- Random role assignment (1 impostor for 6 players)
+- Win condition checking (impostors win / crewmates win)
+- Visual role indicator (top-right corner)
+- Dead player rendering (faded with X)
+- Game over screen with winner announcement
+- Restart functionality (R key)
+
+### Files Created/Modified
+| File | Changes |
+|------|---------|
+| `game/state.py` | NEW - GameState, Role, GamePhase, WinReason classes |
+| `game/player.py` | Added `role` field to Player |
+| `game/renderer.py` | Added role indicator, game over screen, dead player rendering |
+| `game/__init__.py` | Added state exports |
+| `main.py` | Integrated GameState, added restart and debug kill |
+
+### Key Classes & Methods
+- `Role` - enum (CREWMATE, IMPOSTOR)
+- `GamePhase` - enum (LOBBY, PLAYING, DISCUSSION, VOTING, GAME_OVER)
+- `GameState.start_game()` - assign roles and begin playing
+- `GameState.check_win_conditions()` - check if game ended
+- `GameState.get_alive_impostors()` / `get_alive_crewmates()` - get living players by role
+- `Renderer.draw_role_indicator()` - show "You are: CREWMATE/IMPOSTOR"
+- `Renderer.draw_game_over()` - show winner screen
+
+### Win Conditions
+- **Impostors win**: When impostors >= crewmates (alive)
+- **Crewmates win**: When all impostors are dead
+
+### Test Controls
+- `K` - Kill a crewmate (debug, to test win conditions)
+- `R` - Restart game with new roles
 
 ---
 
@@ -160,4 +191,8 @@ source venv/bin/activate
 python main.py
 ```
 
-**Controls:** WASD or Arrow Keys to move (Player 1), ESC to quit
+**Controls:**
+- WASD / Arrow Keys - Move (Player 1)
+- K - Kill a crewmate (debug)
+- R - Restart game
+- ESC - Quit
