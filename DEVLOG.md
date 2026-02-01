@@ -46,13 +46,38 @@ A phase-by-phase record of what was built.
 ---
 
 ## Phase 2: Player Entities & Movement
-**Status:** Pending
+**Status:** Complete
 
-### Planned
-- Player class with position, color, ID, provider label
-- Multiple players spawning in Cafeteria
-- Movement system (AI will control this later)
-- Player collision with each other
+### What We Built
+- `Player` class with id, position, color, provider label, alive status
+- `PlayerManager` to spawn and manage multiple players
+- Movement system with directional movement and collision detection
+- 6 players spawning in Cafeteria with spread-out positions
+- Player 1 is keyboard-controlled, others wait for AI (Phase 5)
+
+### Files Created/Modified
+| File | Changes |
+|------|---------|
+| `game/player.py` | NEW - Player, PlayerManager, Direction classes |
+| `game/__init__.py` | Added player exports |
+| `main.py` | Updated to use PlayerManager |
+
+### Key Classes & Methods
+- `Player` - dataclass with id, x, y, color, provider, alive, speed
+- `Player.move(direction, game_map)` - move in a direction with collision check
+- `Player.move_towards(x, y, game_map)` - move towards a point (for AI)
+- `Player.distance_to(other)` - calculate distance to another player
+- `PlayerManager.spawn_players(count, providers)` - spawn players in Cafeteria
+- `PlayerManager.get_nearby_players(player, radius)` - find players within range
+- `PlayerManager.get_players_in_room(room_name)` - find players in a room
+- `Direction` - enum for UP, DOWN, LEFT, RIGHT, NONE
+
+### Visual Result
+```
+[Cafeteria]
+  1-You   2-GPT    3-Claude
+  4-Gemini 5-GPT   6-Claude
+```
 
 ---
 
@@ -135,4 +160,4 @@ source venv/bin/activate
 python main.py
 ```
 
-**Controls (Phase 1 test):** WASD or Arrow Keys to move, ESC to quit
+**Controls:** WASD or Arrow Keys to move (Player 1), ESC to quit
