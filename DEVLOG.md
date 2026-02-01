@@ -1,0 +1,138 @@
+# Among Us AI - Development Log
+
+A phase-by-phase record of what was built.
+
+---
+
+## Phase 1: Game Map Foundation
+**Status:** Complete
+
+### What We Built
+- Basic pygame application running at 60 FPS (1280x720)
+- Minimal test map with 5 rooms connected by hallways
+- Collision detection system
+- Rendering system for rooms, hallways, and players
+
+### Map Layout
+```
+        [Navigation]
+             |
+[Electrical]--[Cafeteria]--[MedBay]
+             |
+        [Storage]
+```
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `main.py` | Entry point, game loop, test player with keyboard control |
+| `game/constants.py` | Screen size, colors, player radius, speeds |
+| `game/map.py` | Room, Hallway, GameMap classes |
+| `game/renderer.py` | Drawing functions for map and entities |
+| `game/__init__.py` | Package exports |
+
+### Key Classes & Methods
+- `Room` - dataclass with name, position, size, connections
+- `Hallway` - connects two rooms with polygon points
+- `GameMap.is_walkable(x, y)` - collision detection
+- `GameMap.get_room_at(x, y)` - returns current room name
+- `Renderer.draw_map()` - renders rooms and hallways
+- `Renderer.draw_player()` - renders colored circle with ID label
+
+### Technical Notes
+- Using `pygame-ce` (Community Edition) for Python 3.14 compatibility
+- Standard `pygame` has font module issues with Python 3.14
+
+---
+
+## Phase 2: Player Entities & Movement
+**Status:** Pending
+
+### Planned
+- Player class with position, color, ID, provider label
+- Multiple players spawning in Cafeteria
+- Movement system (AI will control this later)
+- Player collision with each other
+
+---
+
+## Phase 3: Game State & Roles
+**Status:** Pending
+
+### Planned
+- GameState class managing game phases
+- Role assignment (crewmate/impostor)
+- Alive/dead status tracking
+- Win conditions
+
+---
+
+## Phase 4: Visibility System
+**Status:** Pending
+
+### Planned
+- Players only see nearby players (limited vision)
+- Fog of war or vision radius
+- This feeds into the AI observation contract
+
+---
+
+## Phase 5: AI Provider Interface
+**Status:** Pending
+
+### Planned
+- Abstract `AIProvider` base class
+- `decide(observation) -> action` interface
+- OpenAI, Claude, Gemini adapters
+- Rule-based bot for testing
+- Non-blocking API calls with timeouts
+
+---
+
+## Phase 6: Discussion & Voting
+**Status:** Pending
+
+### Planned
+- Discussion phase triggered by body report or emergency button
+- Chat system for AI to send messages
+- Voting UI and logic
+- Ejection based on vote results
+
+---
+
+## Phase 7: Kill Mechanics & Bodies
+**Status:** Pending
+
+### Planned
+- Impostor kill action (with cooldown)
+- Dead bodies on map
+- Body reporting system
+- Ghost state for dead players
+
+---
+
+## Phase 8: Configuration System
+**Status:** Pending
+
+### Planned
+- YAML config for player setup
+- Assign providers and personalities per player
+- Game settings (kill cooldown, vision range, etc.)
+- Reproducible seeds for deterministic runs
+
+---
+
+## Dependencies
+```
+pygame-ce>=2.5.6
+pyyaml>=6.0
+```
+
+## Running the Game
+```bash
+cd amoung-us-for-ai
+source venv/bin/activate
+python main.py
+```
+
+**Controls (Phase 1 test):** WASD or Arrow Keys to move, ESC to quit
