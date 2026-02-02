@@ -2,7 +2,7 @@
 Among Us AI - Main Entry Point
 An AI experiment where LLM-powered bots play Among Us
 
-Phase 3: Game state and role assignment
+Phase 4: Visibility system and fog of war
 """
 
 import pygame
@@ -12,7 +12,8 @@ from game.map import GameMap
 from game.renderer import Renderer
 from game.player import PlayerManager, Direction
 from game.state import GameState, GamePhase, Role
-from game.constants import SCREEN_WIDTH, SCREEN_HEIGHT, FPS
+from game.vision import VisionSystem
+from game.constants import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, FOG_COLOR
 
 
 class Game:
@@ -20,7 +21,7 @@ class Game:
 
     def __init__(self):
         pygame.init()
-        pygame.display.set_caption("Among Us AI - Phase 3: Roles")
+        pygame.display.set_caption("Among Us AI - Phase 4: Vision")
 
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.clock = pygame.time.Clock()
@@ -37,11 +38,17 @@ class Game:
         # Initialize game state
         self.game_state = GameState(self.player_manager)
 
+        # Initialize vision system
+        self.vision = VisionSystem(self.game_map, self.player_manager, self.game_state)
+
         # Start the game immediately (auto-assign roles)
         self.game_state.start_game()
 
         # Player 1 is keyboard-controlled for testing
         self.controlled_player_id = 1
+
+        # Fog of war toggle (V key)
+        self.fog_enabled = True
 
     def _spawn_players(self):
         """Spawn players with different AI providers"""
@@ -73,6 +80,7 @@ class Game:
 
         # Create new game state and start
         self.game_state = GameState(self.player_manager)
+        self.vision = VisionSystem(self.game_map, self.player_manager, self.game_state)
         self.game_state.start_game()
 
     def handle_events(self):
@@ -86,6 +94,9 @@ class Game:
                 elif event.key == pygame.K_r:
                     # Restart game
                     self._restart_game()
+                elif event.key == pygame.K_v:
+                    # Toggle fog of war
+                    self.fog_enabled = not self.fog_enabled
                 elif event.key == pygame.K_k:
                     # Debug: Kill a random crewmate (test win conditions)
                     if self.game_state.phase == GamePhase.PLAYING:
@@ -96,6 +107,15 @@ class Game:
                             if target:
                                 target.alive = False
                                 self.game_state.check_win_conditions()
+                elif event.key == pygame.K_o:
+                    # Debug: Print observation for controlled player
+                    controlled = self.player_manager.get_player(self.controlled_player_id)
+                    if controlled:
+                        obs = self.vision.get_observation_for_ai(controlled)
+                        print("\n=== OBSERVATION ===")
+                        import json
+                        print(json.dumps(obs, indent=2))
+                        print("==================\n")
 
     def update(self):
         """Update game state"""
@@ -122,19 +142,41 @@ class Game:
 
     def render(self):
         """Render the game"""
+        controlled = self.player_manager.get_player(self.controlled_player_id)
+
         # Draw map
         self.renderer.draw_map(self.game_map)
 
-        # Draw all players
+        # Get visible players for the controlled player
+        if self.fog_enabled and controlled and controlled.alive:
+            visible_players = self.vision.get_visible_players(controlled)
+            visible_ids = {p.id for p in visible_players}
+            visible_ids.add(controlled.id)  # Always see yourself
+        else:
+            # No fog - see everyone
+            visible_ids = {p.id for p in self.player_manager.players}
+
+        # Draw all players (visible ones fully, hidden ones not at all when fog enabled)
         for player in self.player_manager.players:
-            self.renderer.draw_player(
-                int(player.x),
-                int(player.y),
-                player.color,
-                player_id=player.id,
-                provider=player.provider,
-                radius=player.radius,
-                alive=player.alive
+            if player.id in visible_ids or not self.fog_enabled:
+                self.renderer.draw_player(
+                    int(player.x),
+                    int(player.y),
+                    player.color,
+                    player_id=player.id,
+                    provider=player.provider,
+                    radius=player.radius,
+                    alive=player.alive
+                )
+
+        # Draw fog of war
+        if self.fog_enabled and controlled and controlled.alive:
+            vision_radius = self.vision.get_vision_radius(controlled)
+            self.renderer.draw_fog_of_war(
+                int(controlled.x),
+                int(controlled.y),
+                vision_radius,
+                FOG_COLOR
             )
 
         # Draw game phase banner
@@ -144,7 +186,6 @@ class Game:
         )
 
         # Draw role indicator for controlled player
-        controlled = self.player_manager.get_player(self.controlled_player_id)
         if controlled and controlled.role:
             self.renderer.draw_role_indicator(
                 controlled.role.value,
@@ -161,11 +202,14 @@ class Game:
         # Draw debug info
         state_summary = self.game_state.get_state_summary()
         current_room = self.game_map.get_room_at(controlled.x, controlled.y) if controlled else "?"
+        visible_count = len(visible_ids) - 1 if controlled else 0  # -1 to exclude self
 
         self.renderer.draw_debug_info({
-            "Phase": "3 - Roles",
-            "Controls": "WASD=Move, K=Kill(test), R=Restart",
+            "Phase": "4 - Vision",
+            "Controls": "WASD, V=Fog, K=Kill, O=Obs, R=Restart",
             "Your Room": current_room or "Hallway",
+            "Visible": f"{visible_count} players",
+            "Fog": "ON" if self.fog_enabled else "OFF",
             "Alive": f"{state_summary['alive_crewmates']}C / {state_summary['alive_impostors']}I",
         })
 

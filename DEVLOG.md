@@ -124,12 +124,53 @@ A phase-by-phase record of what was built.
 ---
 
 ## Phase 4: Visibility System
-**Status:** Pending
+**Status:** Complete
 
-### Planned
-- Players only see nearby players (limited vision)
-- Fog of war or vision radius
-- This feeds into the AI observation contract
+### What We Built
+- Vision radius system (crewmates: 150px, impostors: 180px)
+- Fog of war with gradient edges (darkens areas outside vision)
+- Players outside vision radius are hidden
+- Observation system for AI (returns only what player can see)
+- Toggle fog on/off with V key
+- Debug observation print with O key
+
+### Files Created/Modified
+| File | Changes |
+|------|---------|
+| `game/vision.py` | NEW - VisionSystem class, observation builder |
+| `game/constants.py` | Added VISION_RADIUS_CREWMATE, VISION_RADIUS_IMPOSTOR, FOG_COLOR |
+| `game/renderer.py` | Added draw_fog_of_war() method |
+| `game/__init__.py` | Added vision exports |
+| `main.py` | Integrated VisionSystem, fog toggle, observation debug |
+
+### Key Classes & Methods
+- `VisionSystem` - manages visibility and observations
+- `VisionSystem.get_visible_players(player)` - get players within vision
+- `VisionSystem.get_vision_radius(player)` - get vision range by role
+- `VisionSystem.get_observation(player)` - full observation dict
+- `VisionSystem.get_observation_for_ai(player)` - simplified for AI prompts
+- `Renderer.draw_fog_of_war()` - gradient fog effect
+
+### Observation Contract (for AI)
+```json
+{
+  "you": {
+    "id": 1,
+    "role": "crewmate",
+    "alive": true,
+    "current_room": "Cafeteria"
+  },
+  "visible_players": [
+    {"id": 2, "location": "Cafeteria", "alive": true}
+  ],
+  "game_phase": "playing",
+  "round": 1
+}
+```
+
+### Test Controls
+- `V` - Toggle fog of war on/off
+- `O` - Print current observation to console (for debugging AI)
 
 ---
 
@@ -193,6 +234,8 @@ python main.py
 
 **Controls:**
 - WASD / Arrow Keys - Move (Player 1)
+- V - Toggle fog of war
+- O - Print observation to console
 - K - Kill a crewmate (debug)
 - R - Restart game
 - ESC - Quit

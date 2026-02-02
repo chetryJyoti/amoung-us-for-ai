@@ -164,6 +164,46 @@ class Renderer:
         hint_rect = hint_label.get_rect(center=(SCREEN_WIDTH // 2, 400))
         self.screen.blit(hint_label, hint_rect)
 
+    def draw_fog_of_war(self, player_x: int, player_y: int, vision_radius: float,
+                        fog_color: tuple = (10, 10, 15)):
+        """
+        Draw fog of war - darkens areas outside player's vision.
+        Uses a radial gradient for smooth edges.
+        """
+        screen_width = self.screen.get_width()
+        screen_height = self.screen.get_height()
+
+        # Create fog surface with alpha
+        fog = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+        fog.fill((*fog_color, 180))  # Semi-transparent fog
+
+        # Create gradient vision circle (soft edges)
+        # Draw concentric circles from outside in, decreasing alpha
+        max_radius = int(vision_radius * 1.3)
+        inner_radius = int(vision_radius * 0.8)
+
+        for r in range(max_radius, inner_radius, -3):
+            # Calculate alpha based on distance from inner radius
+            t = (r - inner_radius) / (max_radius - inner_radius)
+            alpha = int(180 * (1 - t))
+            pygame.draw.circle(fog, (*fog_color, alpha), (player_x, player_y), r)
+
+        # Clear the inner vision area completely
+        pygame.draw.circle(fog, (0, 0, 0, 0), (player_x, player_y), inner_radius)
+
+        # Apply fog to screen
+        self.screen.blit(fog, (0, 0))
+
+    def draw_vision_radius_debug(self, player_x: int, player_y: int, vision_radius: float):
+        """Draw a debug circle showing vision radius"""
+        pygame.draw.circle(
+            self.screen,
+            (100, 100, 100),
+            (player_x, player_y),
+            int(vision_radius),
+            1  # Just the outline
+        )
+
     def draw_debug_info(self, info: dict):
         """Draw debug information on screen"""
         y_offset = 10

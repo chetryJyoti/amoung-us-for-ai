@@ -38,3 +38,8 @@ HALLWAY_WIDTH = 40
 # Player
 PLAYER_RADIUS = 15
 PLAYER_SPEED = 3
+
+# Vision
+VISION_RADIUS_CREWMATE = 150  # Crewmate vision radius in pixels
+VISION_RADIUS_IMPOSTOR = 180  # Impostors see slightly further
+FOG_COLOR = (10, 10, 15)      # Color for fog of war
